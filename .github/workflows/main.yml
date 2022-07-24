@@ -23,5 +23,5 @@ jobs:
           private-key: ${{ secrets.PRIVATE_KEY }}
           account: exp0nge2
           project: trail-conservation-nft
-          release: github-action-${{ env.GITHUB_RUN_ID }}
+          release: ${{ env.TIMESTAMP }}
           path: 'trail-ui/build'
