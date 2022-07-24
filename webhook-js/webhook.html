@@ -6,9 +6,6 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sensor Data Receiver</title>
-</head>
-
-<body>
     <script>
         const params = new Proxy(new URLSearchParams(window.location.search), {
             get: (searchParams, prop) => searchParams.get(prop),
@@ -32,6 +29,9 @@
         xhr.setRequestHeader("Authorization", "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJkaWQ6ZXRocjoweGEyMDk2ZmQ5RjZiNjM3NmQ0OEU0NzNCRDYzY0UwZDllODlkNmM0MDYiLCJpc3MiOiJ3ZWIzLXN0b3JhZ2UiLCJpYXQiOjE2NTg2MDgxMDUxMjIsIm5hbWUiOiJ3aW8ifQ.emRcF95reB9vkhFlKp_Y9dOPbr7nfncregQ4E1b2TVU");
         xhr.send(data);
     </script>
+</head>
+
+<body>
 </body>
 
 </html>
