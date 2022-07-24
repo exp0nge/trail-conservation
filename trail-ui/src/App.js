@@ -1,16 +1,18 @@
 import {
-  DesktopOutlined,
-  FileOutlined,
   PieChartOutlined,
-  TeamOutlined,
-  UserOutlined
+  UserOutlined,
+  SettingOutlined
 } from '@ant-design/icons';
 import { Breadcrumb, Layout, Menu, Input, Card, Space, Col, Row, Button, Divider, Skeleton, Form } from 'antd';
 import React, { useState } from 'react';
+import { BrowserRouter as Router, Route, Link, Routes } from "react-router-dom";
+
 const { Search } = Input;
 const { Header, Content, Footer, Sider } = Layout;
 const axios = require('axios');
 const { Meta } = Card;
+
+const MINT_ADDRESS = "0x2028879b223444A417D239616fE060a15aef46A9";
 
 const dweb = (cid) => `https://${cid}.ipfs.dweb.link/`;
 const onSearch = async (uniqueCode, setFoundData, setLookupCode) => {
@@ -82,7 +84,8 @@ const pollAndInflateNftCard = async (hash, setMintedCard, setMinting) => {
 
 }
 
-const mintNtf = async (uniqueCode, setMintHidden, setMintedCard, setMinting) => {
+const mintNtf = async (form, uniqueCode, setMintHidden, setMintedCard, setMinting) => {
+  console.log("form", form);
   setMinting(true);
   setMintHidden(true);
   console.log("mint with", uniqueCode)
@@ -93,7 +96,7 @@ const mintNtf = async (uniqueCode, setMintHidden, setMintedCard, setMinting) => 
     "name": `Trail Completionist ${uniqueCode}`,
     "description": "A Trail Completionist NFT is awarded to those that volunteer to help sustain trails and report activity in them.",
     "file_url": imgUrl,
-    "mint_to_address": "0x2028879b223444A417D239616fE060a15aef46A9"
+    "mint_to_address": MINT_ADDRESS
   };
 
   const mintResp = await axios.post(mintUrl, data, {
@@ -132,72 +135,7 @@ function createNftCard(nftData) {
   );
 };
 
-const createForm = () => {
-  const onFinish = (values) => {
-    console.log('Success:', values);
-  };
 
-  const onFinishFailed = (errorInfo) => {
-    console.log('Failed:', errorInfo);
-  };
-
-  return (
-    <Form
-      name="basic"
-      labelCol={{
-        span: 8,
-      }}
-      wrapperCol={{
-        span: 16,
-      }}
-      initialValues={{
-        remember: true,
-      }}
-      onFinish={onFinish}
-      onFinishFailed={onFinishFailed}
-      autoComplete="off"
-    >
-      <Form.Item
-        label="Difficulty"
-        name="difficulty"
-        rules={[
-          {
-            required: false,
-          }
-        ]}
-      >
-        <Input.TextArea />
-        <span>How difficult was this hike?</span>
-      </Form.Item>
-
-      <Form.Item
-        label="Road Condition"
-        name="condition"
-        rules={[
-          {
-            required: false
-          }
-        ]}
-      >
-        <Input.TextArea />
-        <span>How was the road/trail condition? Any obstructions?</span>
-      </Form.Item>
-
-      <Form.Item
-        label="Rating"
-        name="rating"
-        rules={[
-          {
-            required: false
-          }
-        ]}
-      >
-        <Input />
-        <span>On a scale of 1-10, how enjoyable was this hike?</span>
-      </Form.Item>
-    </Form>
-  );
-}
 
 function getItem(label, key, icon, children) {
   return {
@@ -229,7 +167,24 @@ const App = () => {
     >
       <Sider collapsible collapsed={collapsed} onCollapse={(value) => setCollapsed(value)}>
         <div className="logo" />
-        <Menu theme="dark" defaultSelectedKeys={['1']} mode="inline" items={items} />
+        <Menu
+          theme="dark" defaultSelectedKeys={['1']} mode="inline">
+          <Menu.Item key="1">
+            <PieChartOutlined />
+            <span>Deshboard</span>
+            <Link to="/" />
+          </Menu.Item>
+          <Menu.Item key="2">
+            <UserOutlined />
+            <span>Activity</span>
+            <Link to="/activity" />
+          </Menu.Item>
+          <Menu.Item key="3">
+            <SettingOutlined />
+            <span>Admin</span>
+            <Link to="/admin" />
+          </Menu.Item>
+        </Menu>
       </Sider>
       <Layout className="site-layout">
         <Header
@@ -260,7 +215,7 @@ const App = () => {
           >
             <Row>
               <Col span={6}>
-                <Search placeholder="input search text" onSearch={v => onSearch(v, setFoundData, setLookupCode)} enterButton />
+                <Search placeholder="unique code" onSearch={v => onSearch(v, setFoundData, setLookupCode)} enterButton />
               </Col>
             </Row>
             <Row>
@@ -284,10 +239,54 @@ const App = () => {
                     >
                       {`Created: ${foundData["device_dateCreated"]}`}
                       <Divider />
-                      {createForm()}
-                      <Button disabled={mintHidden} type="primary" shape="round" size={"large"} onClick={() => mintNtf(foundData["device_pinValue"], setMintHidden, setMintedCard, setMinting)}>
-                        Mint!
-                      </Button>
+                      <Form
+                        layout="vertical"
+                        onFinish={form => mintNtf(form, foundData["device_pinValue"], setMintHidden, setMintedCard, setMinting)}
+                        autoComplete="off"
+                      >
+
+                        <Form.Item
+                          label="How difficult was this hike?"
+                          name="difficulty"
+                          rules={[
+                            {
+                              required: false,
+                            }
+                          ]}
+                        >
+                          <Input.TextArea />
+                        </Form.Item>
+
+                        <Form.Item
+                          label="How was the road/trail condition? Any obstructions?"
+                          name="condition"
+                          rules={[
+                            {
+                              required: false
+                            }
+                          ]}
+                        >
+                          <Input.TextArea />
+                        </Form.Item>
+
+                        <Form.Item
+                          label="On a scale of 1-10, how enjoyable was this hike?"
+                          name="rating"
+                          rules={[
+                            {
+                              required: false
+                            }
+                          ]}
+                        >
+                          <Input />
+                        </Form.Item>
+
+                        <Form.Item>
+                          <Button disabled={mintHidden} htmlType="submit" type="primary" shape="round" size={"large"}>
+                            Mint!
+                          </Button>
+                        </Form.Item>
+                      </Form>
                     </Card>
                   </div>)}
               </Col>
