@@ -3,10 +3,10 @@ import {
   UserOutlined,
   SettingOutlined
 } from '@ant-design/icons';
-import { Breadcrumb, Layout, Menu, Input, Card, Space, Col, Row, Button, Divider, Skeleton, Form } from 'antd';
-import React, { useState } from 'react';
+import { Breadcrumb, Layout, Menu, Input, Card, Typography, Col, Row, Button, Divider, Skeleton, Form } from 'antd';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Route, Link, Routes } from "react-router-dom";
-
+const { Title } = Typography;
 const { Search } = Input;
 const { Header, Content, Footer, Sider } = Layout;
 const axios = require('axios');
@@ -44,7 +44,9 @@ const getNftImageUrl = async () => {
 }
 
 const listAllNftsOwned = async () => {
-  return axios.get("https://api.nftport.xyz/v0/accounts/0x2028879b223444A417D239616fE060a15aef46A9?chain=rinkeby&include=metadata", {
+  // const url= "https://api.nftport.xyz/v0/accounts/0x2028879b223444A417D239616fE060a15aef46A9?chain=rinkeby&include=metadata";
+  const url = "https://api.nftport.xyz/v0/accounts/0x2028879b223444A417D239616fE060a15aef46A9?chain=polygon&include=metadata";
+  return axios.get(url, {
     headers: {
       "Authorization": "6270fc9a-b98b-4f77-8b8e-f6f385ddc4a2"
     }
@@ -53,7 +55,8 @@ const listAllNftsOwned = async () => {
 
 const pollAndInflateNftCard = async (hash, setMintedCard, setMinting) => {
   console.log("begin polling for", hash);
-  const mineUrl = `https://api.nftport.xyz/v0/mints/${hash}?chain=rinkeby`
+  // const mineUrl = `https://api.nftport.xyz/v0/mints/${hash}?chain=rinkeby`
+  const mineUrl = `https://api.nftport.xyz/v0/mints/${hash}?chain=polygon`
   axios.get(mineUrl, {
     headers: {
       "Authorization": "6270fc9a-b98b-4f77-8b8e-f6f385ddc4a2"
@@ -159,6 +162,10 @@ const App = () => {
   const [lookupCode, setLookupCode] = useState(false);
   const [minting, setMinting] = useState(false);
 
+  useEffect(() => {
+    localStorage.setItem("mintedCard", JSON.stringify(mintedCard));
+  }, [mintedCard]);
+
   return (
     <Layout
       style={{
@@ -214,7 +221,9 @@ const App = () => {
             }}
           >
             <Row>
-              <Col span={6}>
+              <Col span={12}>
+                <Title level={2}>Check In</Title>
+                <span>Claim your Trail Completionist NFT. Enter the unique ID you have received from the trail checkpoint.</span>
                 <Search placeholder="unique code" onSearch={v => onSearch(v, setFoundData, setLookupCode)} enterButton />
               </Col>
             </Row>

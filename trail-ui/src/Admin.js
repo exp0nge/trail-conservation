@@ -53,7 +53,7 @@ function Admin() {
             <Sider collapsible collapsed={collapsed} onCollapse={(value) => setCollapsed(value)}>
                 <div className="logo" />
                 <Menu
-                    theme="dark" defaultSelectedKeys={['1']} mode="inline">
+                    theme="dark" defaultSelectedKeys={['3']} mode="inline">
                     <Menu.Item key="1">
                         <PieChartOutlined />
                         <span>Deshboard</span>
