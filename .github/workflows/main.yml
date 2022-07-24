@@ -24,4 +24,4 @@ jobs:
           account: exp0nge2
           project: trail-conservation-nft
           release: github-action-${{ env.GITHUB_RUN_ID }}
-          path: './trail-ui/build'
+          path: './trail-ui/build/'
