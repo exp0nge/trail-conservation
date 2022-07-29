@@ -12,20 +12,17 @@ const { Header, Content, Footer, Sider } = Layout;
 const axios = require('axios');
 const { Meta } = Card;
 
-const MINT_ADDRESS = "0x2028879b223444A417D239616fE060a15aef46A9";
+const backendBaseUrl = "https://trail-conservation.azurewebsites.net";
 
-const dweb = (cid) => `https://${cid}.ipfs.dweb.link/`;
 const onSearch = async (uniqueCode, setFoundData, setLookupCode) => {
   setLookupCode(true);
-  let results = await listUploads();
+  let results = await listUploads(uniqueCode);
   console.log(results.data);
-  let files = await Promise.all(results.data.map(upload => axios.get(dweb(upload.cid))));
-  console.log(files.map(resp => resp.data));
-  let filtered = files.filter(resp => resp.data.device_pinValue.replaceAll(" ", "") === uniqueCode.replaceAll(" ", ""));
+  let filtered = results.data.filtered;
   setLookupCode(false);
   if (filtered.length == 1) {
-    console.log("filtered", filtered[0].data);
-    setFoundData(filtered[0].data);
+    console.log("filtered", filtered[0]);
+    setFoundData(filtered[0]);
   }
 };
 
@@ -34,34 +31,19 @@ const getNftImageUrl = async () => {
   const pageNumber = Math.floor(Math.random() * 10);
   const selection = Math.floor(Math.random() * 9);
   const imageResp = await axios
-    .get(`https://api.pexels.com/v1/search?query=mountain&page=${pageNumber}&per_page=${perPage}`,
-      {
-        headers: {
-          "Authorization": "563492ad6f917000010000018b90ecadf3334968a540cc390fd35348"
-        }
-      });
+    .get(`${backendBaseUrl}/nfts/images?query=mountain&page=${pageNumber}&per_page=${perPage}`);
   return imageResp.data.photos[selection].src.medium;
 }
 
 const listAllNftsOwned = async () => {
-  // const url= "https://api.nftport.xyz/v0/accounts/0x2028879b223444A417D239616fE060a15aef46A9?chain=rinkeby&include=metadata";
-  const url = "https://api.nftport.xyz/v0/accounts/0x2028879b223444A417D239616fE060a15aef46A9?chain=polygon&include=metadata";
-  return axios.get(url, {
-    headers: {
-      "Authorization": "6270fc9a-b98b-4f77-8b8e-f6f385ddc4a2"
-    }
-  });
+  const url = `${backendBaseUrl}/nfts/owned?chain=rinkeby&include=metadata`;
+  return axios.get(url);
 }
 
 const pollAndInflateNftCard = async (hash, setMintedCard, setMinting) => {
   console.log("begin polling for", hash);
-  // const mineUrl = `https://api.nftport.xyz/v0/mints/${hash}?chain=rinkeby`
-  const mineUrl = `https://api.nftport.xyz/v0/mints/${hash}?chain=polygon`
-  axios.get(mineUrl, {
-    headers: {
-      "Authorization": "6270fc9a-b98b-4f77-8b8e-f6f385ddc4a2"
-    }
-  })
+  const mineUrl = `${backendBaseUrl}/nfts/mint/poll?hash=${hash}`
+  axios.get(mineUrl)
     .then(async (minedInResp) => {
       console.log("minedInResp", minedInResp.data);
       const allNfts = await listAllNftsOwned();
@@ -92,36 +74,22 @@ const mintNtf = async (form, uniqueCode, setMintHidden, setMintedCard, setMintin
   setMinting(true);
   setMintHidden(true);
   console.log("mint with", uniqueCode)
-  const mintUrl = "https://api.nftport.xyz/v0/mints/easy/urls";
+  const mintUrl = `${backendBaseUrl}/nfts/mint`;
   const imgUrl = await getNftImageUrl();
-  const data = {
-    "chain": "rinkeby",
-    "name": `Trail Completionist ${uniqueCode}`,
-    "description": "A Trail Completionist NFT is awarded to those that volunteer to help sustain trails and report activity in them.",
-    "file_url": imgUrl,
-    "mint_to_address": MINT_ADDRESS
-  };
-
-  const mintResp = await axios.post(mintUrl, data, {
-    headers: {
-      "Authorization": "6270fc9a-b98b-4f77-8b8e-f6f385ddc4a2"
-    }
+  const mintResp = await axios.post(mintUrl, {
+    uniqueCode: uniqueCode,
+    imgUrl: imgUrl
   });
 
   setTimeout(() => pollAndInflateNftCard(mintResp.data["transaction_hash"], setMintedCard, setMinting), 5000);
 };
 
 // 122 222 34
-async function listUploads() {
-  const apiKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJkaWQ6ZXRocjoweGEyMDk2ZmQ5RjZiNjM3NmQ0OEU0NzNCRDYzY0UwZDllODlkNmM0MDYiLCJpc3MiOiJ3ZWIzLXN0b3JhZ2UiLCJpYXQiOjE2NTg2MDgxMDUxMjIsIm5hbWUiOiJ3aW8ifQ.emRcF95reB9vkhFlKp_Y9dOPbr7nfncregQ4E1b2TVU';
-  const requestURL = `https://api.web3.storage/user/uploads`;
-  return axios.get(requestURL, {
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${apiKey}`
-    }
-  });
+async function listUploads(uniqueCode) {
+  const requestURL = `${backendBaseUrl}/search?uniqueCode=${uniqueCode}`;
+  return axios.get(requestURL);
 };
+
 
 function createNftCard(nftData) {
   return (
