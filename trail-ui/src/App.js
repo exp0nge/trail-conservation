@@ -20,7 +20,7 @@ const onSearch = async (uniqueCode, setFoundData, setLookupCode) => {
   console.log(results.data);
   let filtered = results.data.filtered;
   setLookupCode(false);
-  if (filtered.length == 1) {
+  if (filtered.length === 1) {
     console.log("filtered", filtered[0]);
     setFoundData(filtered[0]);
   }

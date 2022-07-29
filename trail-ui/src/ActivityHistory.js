@@ -12,31 +12,30 @@ const { Header, Content, Footer, Sider } = Layout;
 const axios = require('axios');
 const { Meta } = Card;
 
-const fetchUsingCovalent = async (setHasData) => {
-  const covalentUrl = "https://api.covalenthq.com/v1/137/tokens/0x1a61dd84d67228b04cf28542c9f492a07cc1a38a/nft_metadata/4752/?quote-currency=USD&format=JSON&key=ckey_e8bd44f22fcc42429d577e3aff6";
-  const imageResp = await axios
-    .get(covalentUrl,
-      {
-        headers: {
-          "Content-Type": "application/json"
-        }
-      });
-  const covalentResp = imageResp.data.data.items[0]["nft_data"][0]["external_data"];
-  console.log("covalentResp", covalentResp);
-  setHasData(covalentResp);
+const backendBaseUrl = "https://trail-conservation.azurewebsites.net";
+
+const listAllNftsOwned = async () => {
+  const url = `${backendBaseUrl}/nfts/owned?chain=rinkeby&include=metadata`;
+  return axios.get(url);
+}
+
+const fetchNfts = async (setHasData) => {
+  const imageResp = await listAllNftsOwned()
+  setHasData(imageResp.data.nfts.reverse());
 }
 
 function createNftCard(nftData) {
   return (
     <div>
-      <br />
-      <Card
-        hoverable
-        style={{ width: 720 }}
-        cover={<img alt="example" src={nftData["image_1024"]} />}
-      >
-        <Meta title={nftData["name"]} description={nftData["description"]} />
-      </Card>
+      <Col offset={5} span={6}>
+        <Card
+          hoverable
+          style={{ width: 300 }}
+          cover={<img alt="example" src={nftData["file_url"]} />}
+        >
+          <Meta title={nftData["name"]} description={nftData["description"]} />
+        </Card>
+      </Col>
     </div>
   );
 };
@@ -47,7 +46,7 @@ function ActivityHistory() {
 
 
   useEffect(() => {
-    fetchUsingCovalent(setHasData);
+    fetchNfts(setHasData);
   });
 
   return (
@@ -104,11 +103,9 @@ function ActivityHistory() {
               minHeight: 360,
             }}
           >
-          {hasData && createNftCard(hasData)}
-          {hasData && createNftCard(hasData)}
-          {hasData && createNftCard(hasData)}
-          {hasData && createNftCard(hasData)}
-
+            <Row>
+              {hasData && hasData.map(data => createNftCard(data))}
+            </Row>
           </div>
         </Content>
         <Footer
